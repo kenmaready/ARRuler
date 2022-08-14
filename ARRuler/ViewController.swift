@@ -23,6 +23,17 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 
     @IBOutlet var sceneView: ARSCNView!
     var points = [SCNNode]()
+    var start: SCNVector3 {
+        get {
+            points[points.count - 2].position
+        }
+    }
+    
+    var end: SCNVector3 {
+        get {
+            points[points.count - 1].position
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad() 
@@ -86,18 +97,34 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         sceneView.scene.rootNode.addChildNode(point)
         points.append(point)
+        
         if points.count >= 2 {
-            calculate()
+            let distance = calculate()
+            displayDistance(distance)
         }
     }
     
-    func calculate() {
-        let start = points[points.count - 2].position
-        let end = points[points.count - 1].position
+    func calculate() -> Float {
         
-        let distance = sqrt(pow(start.x - end.x, 2) + pow(start.y - end.y, 2) + pow(start.z - end.z, 2)) * 39.3701
+        func sqrd(_ x: Float) -> Float {
+            return pow(x, 2)
+        }
         
-        print("distance: \(String(format: "%.2f", distance)) inches")
+        let distance = sqrt(sqrd(start.x - end.x) + sqrd(start.y - end.y) + sqrd(start.z - end.z)) * 39.3701
+        
+        return distance
     }
-
+    
+    func displayDistance(_ distance: Float) {
+        let distanceText = String(format: "%.2f", distance) + " inches"
+        // print("distance: \(distanceText) inches")
+        let textGeometry = SCNText(string: distanceText, extrusionDepth: 1.0)
+        textGeometry.firstMaterial?.diffuse.contents = UIColor.systemBlue
+        
+        let textNode = SCNNode(geometry: textGeometry)
+        textNode.position = SCNVector3(end.x - 0.15, end.y + 0.02, end.z)
+        textNode.scale = SCNVector3(0.003, 0.003, 0.003)
+        
+        sceneView.scene.rootNode.addChildNode(textNode)
+    }
 }
