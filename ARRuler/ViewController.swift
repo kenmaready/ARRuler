@@ -23,15 +23,16 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 
     @IBOutlet var sceneView: ARSCNView!
     var points = [SCNNode]()
+    var textNode = SCNNode()
     var start: SCNVector3 {
         get {
-            points[points.count - 2].position
+            points.first?.position ?? SCNVector3(0.0,0.0,0.0)
         }
     }
     
     var end: SCNVector3 {
         get {
-            points[points.count - 1].position
+            points.last?.position ?? SCNVector3(0.0,0.0,0.0)
         }
     }
     
@@ -63,6 +64,17 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // "third tap" clears the board
+        if points.count >= 2 {
+            for point in points {
+                point.removeFromParentNode()
+            }
+            points = [SCNNode]()
+            textNode.removeFromParentNode()
+            return
+        }
+        
+        
         // get location of touch
         if let touchLocation = touches.first?.location(in: sceneView) {
             
@@ -116,12 +128,13 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     }
     
     func displayDistance(_ distance: Float) {
+        
         let distanceText = String(format: "%.2f", distance) + " inches"
         // print("distance: \(distanceText) inches")
         let textGeometry = SCNText(string: distanceText, extrusionDepth: 1.0)
         textGeometry.firstMaterial?.diffuse.contents = UIColor.systemBlue
         
-        let textNode = SCNNode(geometry: textGeometry)
+        textNode.geometry = textGeometry
         textNode.position = SCNVector3(end.x - 0.15, end.y + 0.02, end.z)
         textNode.scale = SCNVector3(0.003, 0.003, 0.003)
         
